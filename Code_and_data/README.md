@@ -1,8 +1,3 @@
-Here is your updated `README.md`. It reflects the streamlined single-script setup using `data_collection.sh`, corrects all relative path notes and environment variable behaviors, updates the citation to include your full name and final thesis title, and retains every piece of technical context, data schema documentation, and empirical caveats from your original file.
-
----
-
-```markdown
 # CPU-Only LLM Inference Benchmarking Harness
 
 Benchmark scripts used to collect the data for **"Optimizing CPU-Only LLM Inference: Parameter Sweeps, Hardware Bottlenecks, and Performance Modeling"** (Yassine Hattay, Master's Thesis, ENSI, 2026).
@@ -209,6 +204,3 @@ If you use this benchmarking harness or dataset in your research, please cite th
 
 ```
 
-```
-
-```
