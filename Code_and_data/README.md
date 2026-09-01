@@ -1,6 +1,6 @@
 # CPU-Only LLM Inference Benchmarking Harness
 
-Benchmark scripts used to collect the data for **"Toward Hardware-Adaptive Pareto Fronts for CPU-Only LLM Inference: An Empirical Study of `llama.cpp` Across Four Heterogeneous Devices"** (Yassine, Master's Thesis, 2026).
+Benchmark scripts used to collect the data for **"Optimizing CPU-Only LLM Inference: Parameter Sweeps, Hardware Bottlenecks, and Performance Modeling"** (Yassine, Master's Thesis, 2026).
 
 These scripts drive [`llama.cpp`](https://github.com/ggerganov/llama.cpp)'s `llama-bench`, `llama-perplexity`, and `llama-server` binaries through a controlled, single-variable-at-a-time sweep of thread count, quantization format, KV-cache precision, Flash Attention, context depth, and a few system-level knobs (CPU pinning, NUMA, mmap, concurrency, speculative decoding) — with everything left un-offloaded (`-ngl 0`) so every measurement is pure CPU throughput.
 
