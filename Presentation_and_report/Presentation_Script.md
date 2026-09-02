@@ -83,16 +83,16 @@ My contributions are: one, an empirical characterization of hardware effects acr
   - 🟢 Ryzen 5600H: 6C/12T, 16GB DDR4, ~51 GB/s (mid-range, compute-rich)
   - 🟡 Pentium G5420: 2C/4T, 4GB DDR4, ~38 GB/s (low-end, bandwidth-starved)
   - 🟠 Jetson Nano: 4C/4T, 4GB LPDDR4, ~25 GB/s (embedded, bandwidth-starved)
-  - ⚫ Pi 3B: 4C/4T, 1GB LPDDR2, ~3 GB/s (attempted, no data)
+  - ⚫ Pi 3B: 4C/4T, 1GB LPDDR2, ~3 GB/s (excluded — OOM failure, not shown in table)
 - Right side: Resumability diagram showing "Design 1 (failed) → Design 2 (success)"
 - Badge: "70× performance range" | "CV < 5%"
 
 **Script:**
-"I benchmarked four machines, chosen opportunistically from what I had access to, spanning roughly a seventy-times range in raw generation speed.
+"I benchmarked three machines, chosen opportunistically from what I had access to, spanning roughly a seventy-times range in raw generation speed.
 
-First, a mid-range AMD Ryzen 5 5600H laptop with dual-channel DDR4 — compute-rich. Second, a low-end Intel Pentium Gold desktop with a single memory channel and just 4 gigabytes of RAM — bandwidth-starved. Third, an NVIDIA Jetson Nano, an embedded ARM board with shared LPDDR4 memory. Fourth, a Raspberry Pi 3B — which I attempted but produced no usable data, as you'll see.
+First, a mid-range AMD Ryzen 5 5600H laptop with dual-channel DDR4 — compute-rich. Second, a low-end Intel Pentium Gold desktop with a single memory channel and just 4 gigabytes of RAM — bandwidth-starved. Third, an NVIDIA Jetson Nano, an embedded ARM board with shared LPDDR4 memory. I also attempted a fourth device, a Raspberry Pi 3B, but it's excluded from every result I'll show you: its 1 gigabyte of RAM isn't enough to hold even our most aggressively quantized 7B model, so it failed with out-of-memory errors before writing a single row of data — a hardware limitation, not a measurement one.
 
-Everything ran through a resumable harness I built around llama-bench: three to five repetitions per configuration, coefficient of variation under 5 percent in every case I report.
+Everything else ran through a resumable harness I built around llama-bench: three to five repetitions per configuration, coefficient of variation under 5 percent in every case I report.
 
 The resumability was critical. My first design didn't handle interruption well — it re-ran the same measurements over and over when processes were killed. The second design fixed this with row-count-based checkpointing, because these were multi-hour runs on hardware that wasn't dedicated to benchmarking — a laptop that gets closed, a family desktop that gets used for other things. Design 2 is what's behind every number in this talk."
 
@@ -287,17 +287,18 @@ Step 5: given the calibrated model, a user can now evaluate any configuration an
 ## Slide 13 — Practical Recommendations (17:15 → 18:30, 75s)
 
 **Visual Elements:**
-- Six recommendation cards with icons:
+- Seven recommendation cards with icons:
   1. 🚫 Flash Attention at long context → Use -fa 0
   2. 💾 Don't quantize KV on compute-rich → Use -ctk f16 -ctv f16
   3. ⚙️ Physical cores, not logical → Use -t = physical cores
   4.  Single-thread on bandwidth-starved → Use -t 1
   5. 🔧 Legacy formats on old CPUs → Q4_0 faster than Q4_K_M
   6.  MoE on bandwidth-starved (provisional) → Test on your hardware
+  7. 📦 Match model size to device memory budget → Avoid OOM/thrashing
 - Color coding: Red (avoid), Green (preferred), Yellow (test first)
 
 **Script:**
-"So, concretely, what should you do running llama.cpp on CPU? Six recommendations:
+"So, concretely, what should you do running llama.cpp on CPU? Seven recommendations:
 
 One: turn Flash Attention off at long context. Many front-ends enable it by default, which is actively counterproductive here.
 
@@ -309,7 +310,9 @@ Four: on bandwidth-starved chips like the Pentium, single-threaded generation ma
 
 Five: on legacy CPUs without AVX-512, prefer simpler formats like Q4_0 for speed. Use K-quants only if quality matters more.
 
-Six — and I'll flag this as provisional: prefer MoE models on bandwidth-starved hardware, since the roofline model predicts they'll be disproportionately advantaged there. That last one is a hypothesis to test on your own hardware, not a settled recommendation."
+Six — and I'll flag this as provisional: prefer MoE models on bandwidth-starved hardware, since the roofline model predicts they'll be disproportionately advantaged there. That one is a hypothesis to test on your own hardware, not a settled recommendation.
+
+And seven: match model size to the device's memory budget. A model that doesn't fit in RAM alongside its KV cache will thrash or fail outright — exactly what happened with the Raspberry Pi 3B I mentioned earlier."
 
 ---
 
@@ -356,7 +359,7 @@ None of this discounts the findings — every effect I've shown is a real, repro
     - Cross-engine validation
 
 **Script:**
-"Near-term, five things: expand the hardware fleet — I especially want an AVX-512 chip, an Apple Silicon Mac, and a working Raspberry Pi. Run MoE benchmarks on the fleet. Investigate CPU pinning and NUMA effects. And test Flash Attention and KV-cache quantization specifically on the bandwidth-starved machines, to check whether the predicted sign-flip actually happens there.
+"Near-term, five things: expand the hardware fleet — I especially want an AVX-512 chip, an Apple Silicon Mac, and a Raspberry Pi 4 or 5. Run MoE benchmarks on the fleet. Investigate CPU pinning and NUMA effects. And test Flash Attention and KV-cache quantization specifically on the bandwidth-starved machines, to check whether the predicted sign-flip actually happens there.
 
 Longer-term, the most ambitious direction is turning per-device calibration into a true zero-shot predictor — one that takes a CPU's raw specs and outputs its constants without ever touching the hardware. That would need on the order of twenty to thirty calibrated devices, ideally contributed by a community rather than one person's personal fleet."
 
